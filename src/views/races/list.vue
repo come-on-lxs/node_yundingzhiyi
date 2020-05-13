@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <div v-loading.fullscreen.lock="loadingFull" />
     <div>
       <el-button
         type="primary"
@@ -131,6 +132,7 @@ import { formattime } from '@/utils/index'
 export default {
   data() {
     return {
+      loadingFull: false,
       dialog_race: false,
       type_race: true,
       uploadHeader: {
@@ -157,15 +159,22 @@ export default {
     }
   },
   created() {
+    this.formattime = formattime
     this.getList()
   },
   methods: {
     // 获取列表
     getList() {
+      this.loadingFull = true
       list().then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.raceList = res.data
+        } else {
+          this.$message.error(res.message)
         }
+      }).catch(e => {
+        this.loadingFull = false
       })
     },
     // 上传图片
@@ -187,12 +196,16 @@ export default {
       const form = new FormData();
       // 文件对象
       form.append("raceImg", file);
+      this.loadingFull = true
       upload(form).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.raceForm.imgUrl = `http://${res.data}`
         } else {
           this.$message.error(res.message || '上传图片失败')
         }
+      }).catch(e=>{
+        this.loadingFull = false
       })
     },
     // 添加
@@ -203,7 +216,9 @@ export default {
             this.$message.error('请上传图标')
             return false;
           }
+          this.loadingFull = true
           add(this.raceForm).then(res => {
+            this.loadingFull = false
             if(res.code === 200) {
               this.resetRaceForm()
               this.getList()
@@ -211,6 +226,8 @@ export default {
             } else {
               this.$message.error(res.message || '添加失败')
             }
+          }).catch(e => {
+            this.loadingFull = false
           })
         } else {
           return false;
@@ -228,22 +245,22 @@ export default {
       }
       this.dialog_race = false;
     },
-    // 格式化时间
-    formattime(time) {
-      return formattime(time, 'yyyy-MM-dd hh:mm:ss')
-    },
     // 删除
     deleteRace(row) {
       let { _id } = row
+      this.loadingFull = true
       remove({
         id: _id
       }).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.getList()
           this.$message.success(res.message)
         } else {
           this.$message.error(res.message)
         }
+      }).catch(e => {
+        this.loadingFull = false
       })
     },
     // 修改
@@ -261,7 +278,9 @@ export default {
             this.$message.error('请上传图标')
             return false;
           }
+          this.loadingFull = true
           edit(this.raceForm).then(res => {
+            this.loadingFull = false
             if(res.code === 200) {
               this.resetRaceForm()
               this.getList()
@@ -269,6 +288,8 @@ export default {
             } else {
               this.$message.error(res.message || '修改失败')
             }
+          }).catch(e=> {
+            this.loadingFull = false
           })
         } else {
           return false;
@@ -278,16 +299,20 @@ export default {
     // 禁用启用
     change(row) {
       let { _id, status } = row
+      this.loadingFull = true
       changeStatus({
         id: _id,
         status: status === '0' ? '1' : '0'
       }).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.getList()
           this.$message.success(res.message)
         } else {
           this.$message.error(res.message || '修改失败')
         }
+      }).catch(e => {
+        this.loadingFull = false
       })
     }
   }

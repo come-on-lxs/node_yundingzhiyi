@@ -28,10 +28,11 @@ export function edit(data) {
 }
 
 // 列表
-export function list() {
+export function list(params) {
   return request({
     url: '/hero/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 

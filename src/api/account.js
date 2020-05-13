@@ -1,8 +1,9 @@
 import request from '@/utils/request'
 
-export function getTableData(params) {
+// list
+export function list(params) {
   return request({
-    url: 'getTableData',
+    url: '/accountInfo/list',
     method: 'get',
     params
   })

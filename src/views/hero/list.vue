@@ -1,26 +1,57 @@
 <template>
   <div class="app-container" id="hero-container">
+    <div v-loading.fullscreen.lock="loadingFull" />
     <div>
-      <el-button
-        type="primary"
-        icon="el-icon-plus"
-        size="small"
-        @click="dialog_hero = true; hero_type = true"
-      >
-        添加英雄
-      </el-button>
+      <el-form label-width="50px">
+        <el-form-item label="名称:">
+          <el-input v-model="searchForm.name" type="text" size="small" style="width:300px" />
+        </el-form-item>
+        <el-form-item label="羁绊:">
+          <el-checkbox-group v-model="searchForm.races">
+            <el-checkbox v-for="item in racesList" :key="item._id" :label="item._id">{{item.name}}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+        <el-form-item label="费用:">
+          <el-checkbox-group v-model="searchForm.cost">
+            <el-checkbox v-for="i of 5" :key="i" :label="i">{{i}}费</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            icon="el-icon-search"
+            size="small"
+            @click="getHeroList"
+          >查询</el-button>
+          <el-button
+            type="primary"
+            icon="el-icon-plus"
+            size="small"
+            @click="dialog_hero = true; hero_type = true"
+          >
+            添加英雄
+          </el-button>
+        </el-form-item>
+      </el-form>
     </div>
     <el-table
       :data="heroList"
       stripe
       border
+      :header-cell-style="{ background: '#f8fbfc' }"
       class="table-container"
     >
+      <el-table-column
+        type="index"
+        label="序号"
+        width="80"
+        align="center"
+      />
       <el-table-column
         prop="heroImg"
         label="英雄头像"
         align="center"
-        width="80"
+        width="90"
       >
         <template slot-scope="{ row }">
           <el-image
@@ -39,15 +70,14 @@
         prop="cost"
         label="费用"
         align="center"
+        width="80"
       />
       <el-table-column
         prop="skill_name"
         label="技能名称"
         align="center"
       >
-        <template slot-scope="{ row }">
-          <el-button type="text" @click="seeSkillInfo(row)">{{ row.skill_name }}</el-button>
-        </template>
+        <span slot-scope="{ row }" class="skill-cursor" type="text" @click="seeSkillInfo(row)">{{ row.skill_name }}</span>
       </el-table-column>
       <el-table-column
         prop="羁绊"
@@ -100,24 +130,26 @@
       <el-table-column
         label="操作"
         align="center"
-        width="180"
+        width="80"
       >
-        <template slot-scope="{ row }">
-          <el-tooltip v-if="row.status==='1'" class="item" effect="dark" content="禁用" placement="top">
+        <div slot-scope="{ row }" class="control-container">
+          <el-tooltip v-if="row.status==='1'" class="item" effect="dark" content="禁用" placement="left">
             <i class="el-icon-lock control-icon" @click="changeHeroStatus(row)"></i>
           </el-tooltip>
-          <el-tooltip v-else class="item" effect="dark" content="启用" placement="top">
+          <el-tooltip v-else class="item" effect="dark" content="启用" placement="left">
             <i class="el-icon-unlock control-icon" @click="changeHeroStatus(row)"></i>
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="修改" placement="top">
+          <el-tooltip class="item" effect="dark" content="修改" placement="left">
             <i class="el-icon-edit control-icon control-icon-success" @click="editHero(row)"></i>
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="删除" placement="top">
+          <el-tooltip class="item" effect="dark" content="删除" placement="left">
             <i class="el-icon-delete control-icon control-icon-danger" @click="deleteHero(row)"></i>
           </el-tooltip>
-        </template>
+        </div>
       </el-table-column>
     </el-table>
+    <!-- 分页 -->
+    <pagination :total="pageTotal" :limit="searchForm.page_size" :page="searchForm.page_index" @pagination="changePagination" @update:limit="changePagination" />
     <el-dialog
       :title="hero_type ? '添加英雄':'修改英雄'"
       :visible.sync="dialog_hero"
@@ -258,6 +290,7 @@ import { upload, add, list, remove, edit, changeStatus } from '@/api/hero'
 export default {
   data() {
     return {
+      loadingFull: false,
       dialog_hero: false,
       hero_type: true,
       heroforms: {
@@ -339,7 +372,15 @@ export default {
       },
       heroList: [],
       dialog_skill: false,
-      skillInfo: {}
+      skillInfo: {},
+      pageTotal: 0,
+      searchForm: {
+        name: '',
+        races: [],
+        cost: [],
+        page_size: 10,
+        page_index: 1
+      }
     }
   },
   created() {
@@ -357,14 +398,17 @@ export default {
     },
     // 获取英雄
     getHeroList() {
-      list().then(res => {
+      this.loadingFull = true
+      list(this.searchForm).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.heroList = res.data
+          this.pageTotal = res.total
         } else {
           this.$message.error(res.message)
         }
       }).catch(e => {
-        console.log(e)
+        this.loadingFull = false
       })
     },
     // 上传图片
@@ -387,7 +431,9 @@ export default {
       const form = new FormData();
       // 文件对象
       form.append("heroImg", file);
+      this.loadingFull = true
       upload(form).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           if(type === 1) {
             this.heroforms.heroImg = `http://${res.data}`
@@ -398,7 +444,7 @@ export default {
           this.$message.error(res.message || '上传图片失败')
         }
       }).catch(e => {
-        console.log(e)
+        this.loadingFull = false
       })
     },
     // 添加
@@ -410,7 +456,9 @@ export default {
           } else if(!this.heroforms.skillImg) {
             this.$message.error('请上传技能图标')
           } else {
+            this.loadingFull = true
             add(this.heroforms).then(res => {
+              this.loadingFull = false
               if(res.code === 200) {
                 this.resetHeroForm()
                 this.getHeroList()
@@ -419,7 +467,7 @@ export default {
                 this.$message.error(res.message)
               }
             }).catch(e => {
-              console.log(e)
+              this.loadingFull = false
             })
           }
         } else {
@@ -474,9 +522,11 @@ export default {
         type: 'warning'
       }).then(() => {
         let { _id } = row
+        this.loadingFull = true
         remove({
           id: _id
         }).then(res => {
+          this.loadingFull = false
           if(res.code === 200) {
             this.getHeroList()
             this.$message.success(res.message)
@@ -484,7 +534,7 @@ export default {
             this.$message.error(res.message)
           }
         }).catch(e => {
-          console.log(e)
+          this.loadingFull = false
         })
       }).catch(e=>{})
     },
@@ -510,7 +560,9 @@ export default {
           } else if(!this.heroforms.skillImg) {
             this.$message.error('请上传技能图标')
           } else {
+            this.loadingFull = true
             edit(this.heroforms).then(res => {
+              this.loadingFull = false
               if(res.code === 200) {
                 this.resetHeroForm()
                 this.getHeroList()
@@ -519,7 +571,7 @@ export default {
                 this.$message.error(res.message)
               }
             }).catch(e => {
-              console.log(e)
+              this.loadingFull = false
             })
           }
         } else {
@@ -530,17 +582,28 @@ export default {
     // 禁用/启用
     changeHeroStatus(row) {
       let { _id, status } = row
+      this.loadingFull = true
       changeStatus({
         id: _id,
         status
       }).then(res => {
+        this.loadingFull = false
         if(res.code === 200) {
           this.$message.success(res.message)
           this.getHeroList()
         } else {
           this.$message.error(res.message)
         }
+      }).catch(e => {
+        this.loadingFull = false
       })
+    },
+    // 分页页码变化
+    changePagination(data) {
+      const { page, limit } = data
+      this.searchForm.page_size = limit
+      this.searchForm.page_index = page
+      this.getHeroList()
     }
   }
 }
@@ -636,6 +699,23 @@ export default {
           line-height: 30px;
         }
       }
+    }
+
+    .control-container {
+      height: 100%;
+      display: flex;
+      justify-content: space-between;
+      flex-direction: column;
+      align-items: center;
+
+      i {
+        margin: 10px 0;
+      }
+    }
+
+    .skill-cursor {
+      color: #409EFF;
+      cursor: pointer;
     }
   }
 </style>

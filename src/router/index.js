@@ -55,51 +55,6 @@ export const constantRoutes = [{
       }
     }]
   },
-
-  // 素材管理
-  {
-    path: '/material',
-    component: Layout,
-    redirect: '/material/upload',
-    meta: {
-      title: '素材管理',
-      icon: 'plane'
-    },
-    children: [{
-        path: 'check-template',
-        name: 'check-template',
-        component: () => import('@/views/material/check-template'),
-        meta: {
-          title: '查看模板',
-        }
-      },
-      {
-        path: 'logo',
-        name: 'logo',
-        component: () => import('@/views/material/check-logo'),
-        meta: {
-          title: '查看logo',
-        }
-      },
-      {
-        path: 'generate',
-        name: 'generate',
-        component: () => import('@/views/material/generate'),
-        meta: {
-          title: '生成素材',
-        }
-      },
-      {
-        path: 'check',
-        name: 'check',
-        component: () => import('@/views/material/check'),
-        meta: {
-          title: '查看素材',
-        }
-      },
-    ]
-  },
-
   // 英雄
   {
     path: '/hero',

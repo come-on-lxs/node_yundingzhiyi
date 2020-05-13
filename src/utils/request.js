@@ -6,7 +6,11 @@ import store from '@/store'
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   // withCredentials: false, // send cookies when cross-domain requests
-  timeout: 50000 // request timeout
+  timeout: 50000, // request timeout,
+  header: {
+    'Accept':'application/json', 
+    'Content-Type': 'application/json'
+  }
 })
 
 // request interceptor
@@ -18,6 +22,8 @@ service.interceptors.request.use(
     if(whiteUrl.indexOf(config.url) === -1) {
       config.headers.authorization = localStorage.getItem('token')
     }
+
+    console.log(config)
 
     return config
   },

@@ -3,7 +3,7 @@ import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
-import locale from 'element-ui/lib/locale/lang/en' // lang i18n
+import locale from 'element-ui/lib/locale/lang/zh-CN' // lang zh-CN 
 
 import '@/styles/index.scss' // global css
 
@@ -21,6 +21,10 @@ Vue.use(ElementUI, { locale })
 Vue.prototype.req = request
 
 Vue.config.productionTip = false
+
+// 分页组件
+import Pagination from '@/components/Pagination'
+Vue.component('pagination', Pagination)
 
 new Vue({
   el: '#app',

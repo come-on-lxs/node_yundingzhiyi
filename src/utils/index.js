@@ -111,6 +111,7 @@ export function param2Obj(url) {
 
 // 格式化时间
 export function formattime(thistime, fmt) {
+  fmt = fmt ? fmt : 'yyyy-MM-dd hh:mm:ss'
   const $this = new Date(thistime)
   const o = {
     'M+': $this.getMonth() + 1,
