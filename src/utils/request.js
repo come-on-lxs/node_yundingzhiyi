@@ -23,8 +23,6 @@ service.interceptors.request.use(
       config.headers.authorization = localStorage.getItem('token')
     }
 
-    console.log(config)
-
     return config
   },
   error => {

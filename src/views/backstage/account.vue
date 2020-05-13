@@ -48,8 +48,8 @@
           <el-tooltip v-else class="item" effect="dark" content="启用" placement="top">
             <i class="el-icon-unlock control-icon"></i>
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="重置密码" placement="top">
-            <i class="el-icon-refresh control-icon"></i>
+          <el-tooltip class="item" effect="dark" content="修改密码" placement="top">
+            <i class="el-icon-refresh control-icon control-icon-success" @click="handleResetPwd(row)"></i>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="修改角色" placement="top">
             <i class="el-icon-guide control-icon"></i>
@@ -58,7 +58,7 @@
             <i class="el-icon-edit control-icon control-icon-success"></i>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
-            <i class="el-icon-delete control-icon control-icon-danger"></i>
+            <i class="el-icon-delete control-icon control-icon-danger" @click="handleDelete(row)"></i>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -71,35 +71,47 @@
       :visible.sync="dialog.account"
       :close-on-click-modal="true"
     >
-      <el-form label-width="80px" :model="accountForm">
-        <el-form-item label="账户名:" v-model="accountForm.username">
-          <el-input type="text" placeholder="账户名"></el-input>
+      <el-form ref="accountform" label-width="100px" :model="accountForm" :rules="accountRules">
+        <el-form-item label="账户名:" prop="username">
+          <el-input v-model="accountForm.username" type="text" placeholder="账户名" />
         </el-form-item>
-        <el-form-item label="备注:" v-model="accountForm.desc">
-          <el-input type="textarea" placeholder="简介"></el-input>
+        <el-form-item label="简介:">
+          <el-input v-model="accountForm.desc" type="textarea" placeholder="简介" />
         </el-form-item>
-        <el-form-item label="是否启用:">
+        <el-form-item label="是否启用:" prop="status">
           <el-radio-group v-model="accountForm.status">
             <el-radio :label="1">启用</el-radio>
             <el-radio :label="0">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button size="small">取消</el-button>
-          <el-button type="primary" size="small">添加</el-button>
+          <el-button size="small" @click="resetDialogAccount">取消</el-button>
+          <el-button type="primary" size="small" @click="submitAdd">添加</el-button>
         </el-form-item>
       </el-form>
+    </el-dialog>
+    <!-- 重置密码 -->
+    <el-dialog
+      title="重置密码"
+      :visible.sync="dialog.password"
+      :close-on-click-modal="true"
+      width="520px"
+    >
+      <el-input v-model="resetpwd.val" type="text" placeholder="请输入新密码" class="mgbtm15" />
+      <el-button size="small" @click="resetDialogPwd">取消</el-button>
+      <el-button size="small" type="primary" @click="submitResetPwd">修改</el-button>
     </el-dialog>
   </div>
 </template>
 <script>
 // api
-import { list } from '@/api/account'
+import { list, add, toDelete, toResetPwd } from '@/api/account'
 export default {
   data() {
     return {
       dialog: {
-        account: false
+        account: false,
+        password: false
       },
       loadingFull: false,
       accountForm: {
@@ -107,12 +119,24 @@ export default {
         username: '',
         desc: ''
       },
+      accountRules: {
+        username: [
+          { required: true, message: '请填写账户名', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择账户状态', trigger: 'change' }
+        ]
+      },
       searchForm: {
         page_index: 1,
         page_size: 10
       },
       tableList: [],
-      tableTotal: 0
+      tableTotal: 0,
+      resetpwd: {
+        id: '',
+        val: ''
+      }
     }
   },
   created() {
@@ -139,6 +163,93 @@ export default {
       this.searchForm.page_size = limit
       this.searchForm.page_index = page
       this.list()
+    },
+    resetDialogAccount() {
+      this.accountForm = {
+        status: '',
+        username: '',
+        desc: ''
+      }
+      this.dialog.account = false
+    },
+    submitAdd() {
+      this.$refs.accountform.validate((valid) => {
+        if(valid) {
+          this.loadingFull = true
+          add(this.accountForm).then(res => {
+            this.loadingFull = false
+            if(res.code === 200) {
+              this.resetDialogAccount()
+              this.list()
+              this.$message.success(res.message)
+            } else {
+              this.$message.error(res.message)
+            }
+          }).catch(e => {
+            this.loadingFull = false
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    handleDelete(row) {
+      this.$confirm('删除账户不可找回,是否要删除该账户?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.loadingFull = true
+        toDelete({
+          id: row._id
+        }).then(res => {
+          this.loadingFull = false
+          if(res.code === 200) {
+            this.list()
+            this.$message.success(res.message)
+          } else {
+            this.$message.error(res.message)
+          }
+        }).catch(e => {
+          this.loadingFull = false
+        })
+      })
+    },
+    handleResetPwd(row) {
+      this.resetpwd.id = row._id
+      this.dialog.password = true
+    },
+    resetDialogPwd() {
+      this.resetpwd = {
+        id: '',
+        val: ''
+      }
+      this.dialog.password = false
+    },
+    async submitResetPwd() {
+      let { id, val:password } = this.resetpwd
+      if(!password) {
+        this.$message.error('修改的密码不能为空')
+      } else if (password.length < 6) {
+        this.$message.error('修改的密码至少为6个字符')
+      } else {
+        this.loadingFull = true
+        await toResetPwd({
+          id,
+          password
+        }).then(res => {
+          this.loadingFull = false
+          if(res.code === 200) {
+            this.resetDialogPwd()
+            this.list()
+            this.$message.success(res.message)
+          } else {
+            this.$message.error(res.message)
+          }
+        }).catch(e => {
+          this.loadingFull = false
+        })
+      }
     }
   }
 }
