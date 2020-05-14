@@ -53,9 +53,9 @@ service.interceptors.response.use(
         type: 'error',
         duration: 2 * 1000
       })
-      if(res.code === 403) {
+      if(res.code === 403 || res.code === 401 || res.code === 402) {
         // 重新登录
-        Message.error('token过期,请重新登陆')
+        Message.error(res.message || '请重新登录')
         store.dispatch('user/resetToken').then(() => {
           location.reload()
         })
