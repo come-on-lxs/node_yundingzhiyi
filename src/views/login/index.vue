@@ -1,5 +1,6 @@
 <template>
   <div class="login-container">
+    <canvas id="canvas"></canvas>
     <el-form
       ref="loginForm"
       :model="loginForm"
@@ -61,9 +62,9 @@
 </template>
 
 <script>
- 
+// api
 import { login } from '@/api/login'
-
+import { init } from './canvas'
 export default {
   name: "Login",
   data() {
@@ -106,6 +107,9 @@ export default {
       },
       immediate: true
     }
+  },
+  mounted() {
+    init('canvas')
   },
   methods: {
     showPwd() {
@@ -150,6 +154,16 @@ export default {
 </script>
 
 <style lang="scss">
+
+#canvas {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -1;
+}
+
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 .info {
@@ -210,8 +224,13 @@ $light_gray: #eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
+  // background-color: $bg;
   overflow: hidden;
+  color: #fff !important;
+
+  /deep/ .el-input__inner, /deep/ .svg-container, /deep/ .svg-icon, /deep/ .title {
+    color: #ffffff !important;
+  }
 
   .login-form {
     position: relative;

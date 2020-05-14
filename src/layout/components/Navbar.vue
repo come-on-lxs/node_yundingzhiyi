@@ -14,7 +14,7 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-
+import { loginOut } from '@/api/login'
 export default {
   components: {
     Breadcrumb,
@@ -31,8 +31,14 @@ export default {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
-      localStorage.removeItem('hasLogin')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      await loginOut().then(res => {
+        if(res.code === 200) {
+          localStorage.removeItem('hasLogin')
+          this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+        }
+      }).catch(e => {
+        this.$message.error(e.toString())
+      })
     }
   }
 }

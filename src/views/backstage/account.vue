@@ -43,19 +43,19 @@
       >
         <template slot-scope="{ row }">
           <el-tooltip v-if="row.status==='1'" class="item" effect="dark" content="禁用" placement="top">
-            <i class="el-icon-lock control-icon"></i>
+            <i class="el-icon-lock control-icon" @click="handleChangeStatus(row)"></i>
           </el-tooltip>
           <el-tooltip v-else class="item" effect="dark" content="启用" placement="top">
-            <i class="el-icon-unlock control-icon"></i>
+            <i class="el-icon-unlock control-icon" @click="handleChangeStatus(row)"></i>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="修改密码" placement="top">
             <i class="el-icon-refresh control-icon control-icon-success" @click="handleResetPwd(row)"></i>
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="修改角色" placement="top">
+          <!-- <el-tooltip class="item" effect="dark" content="修改角色" placement="top">
             <i class="el-icon-guide control-icon"></i>
-          </el-tooltip>
+          </el-tooltip> -->
           <el-tooltip class="item" effect="dark" content="修改" placement="top">
-            <i class="el-icon-edit control-icon control-icon-success"></i>
+            <i class="el-icon-edit control-icon control-icon-success" @click="handleEdit(row)"></i>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
             <i class="el-icon-delete control-icon control-icon-danger" @click="handleDelete(row)"></i>
@@ -69,7 +69,7 @@
     <el-dialog
       title="账户"
       :visible.sync="dialog.account"
-      :close-on-click-modal="true"
+      :close-on-click-modal="false"
     >
       <el-form ref="accountform" label-width="100px" :model="accountForm" :rules="accountRules">
         <el-form-item label="账户名:" prop="username">
@@ -86,7 +86,8 @@
         </el-form-item>
         <el-form-item>
           <el-button size="small" @click="resetDialogAccount">取消</el-button>
-          <el-button type="primary" size="small" @click="submitAdd">添加</el-button>
+          <el-button v-if="edit.accountType" type="primary" size="small" @click="submitAdd">添加</el-button>
+          <el-button v-else type="primary" size="small" @click="submitEdit">修改</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -105,7 +106,7 @@
 </template>
 <script>
 // api
-import { list, add, toDelete, toResetPwd } from '@/api/account'
+import { list, add, toDelete, toResetPwd, changeStatus, toEdit } from '@/api/account'
 export default {
   data() {
     return {
@@ -136,6 +137,10 @@ export default {
       resetpwd: {
         id: '',
         val: ''
+      },
+      edit: {
+        accountType: '',
+        accountId: ''
       }
     }
   },
@@ -171,6 +176,8 @@ export default {
         desc: ''
       }
       this.dialog.account = false
+      this.edit.accountType = false
+      this.edit.accountId = ''
     },
     submitAdd() {
       this.$refs.accountform.validate((valid) => {
@@ -250,6 +257,55 @@ export default {
           this.loadingFull = false
         })
       }
+    },
+    // 修改状态
+    handleChangeStatus(row) {
+      this.loadingFull = true
+      changeStatus({
+        id: row._id,
+        status: row.status === '0' ? '1' : '0'
+      }).then(res => {
+        this.loadingFull = false
+        if(res.code === 200) {
+          this.list()
+          this.$message.success(res.message)
+        } else {
+          this.$message.error(res.message)
+        }
+      }).catch(e => {
+        this.loadingFull = false
+      })
+    },
+    handleEdit(row) {
+      this.edit.accountType = false
+      this.edit.accountId = row._id
+      this.accountForm.status = Number(row.status)
+      this.accountForm.desc = row.desc
+      this.accountForm.username = row.username
+      this.dialog.account = true
+    },
+    submitEdit() {
+      this.$refs.accountform.validate((valid) => {
+        if(valid) {
+          this.loadingFull = true
+          let data = Object.assign({}, this.accountForm)
+          data.id = this.edit.accountId
+          toEdit(data).then(res => {
+            this.loadingFull = false
+            if(res.code === 200) {
+              this.resetDialogAccount()
+              this.list()
+              this.$message.success(res.message)
+            } else {
+              this.$message.error(res.message)
+            }
+          }).catch(e => {
+            this.loadingFull = false
+          })
+        } else {
+          return false
+        }
+      })
     }
   }
 }

@@ -8,6 +8,13 @@ export function login(data) {
   })
 }
 
+export function loginOut() {
+  return request({
+    url: '/login/out',
+    method: 'post'
+  })
+}
+
 export function getUserInfo() {
   return request({
     url: '/accountInfo',

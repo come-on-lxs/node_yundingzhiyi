@@ -35,3 +35,21 @@ export function toResetPwd(data) {
     data
   })
 }
+
+// 禁用/启用
+export function changeStatus(data) {
+  return request({
+    url: '/accountInfo/changeStatus',
+    method: 'post',
+    data
+  })
+}
+
+// 编辑
+export function toEdit(data) {
+  return request({
+    url: '/accountInfo/edit',
+    method: 'post',
+    data
+  })
+}
