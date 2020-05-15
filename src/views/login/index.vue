@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div id="login-page" class="login-container">
     <canvas id="canvas"></canvas>
     <el-form
       ref="loginForm"
@@ -163,6 +163,14 @@ export default {
   right: 0;
   z-index: -1;
 }
+
+/* 修复input 在谷歌下会自动填充 -webit-autofull 属性背景 */
+#login-page {
+  .el-form-item__content {
+    background: #283443;
+  }
+}
+
 
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
