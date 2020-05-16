@@ -52,6 +52,7 @@ export const constantRoutes = [{
       component: () => import('@/views/home/home'),
       meta: {
         title: '首页',
+        icon: 'home'
       }
     }]
   },
@@ -83,7 +84,7 @@ export const constantRoutes = [{
     redirect: '/races/list',
     meta: {
       title: '羁绊管理',
-      icon: 'user'
+      icon: 'race'
     },
     children: [
       {
@@ -104,7 +105,7 @@ export const constantRoutes = [{
     redirect: '/equip/list',
     meta: {
       title: '装备管理',
-      icon: 'user'
+      icon: 'equip'
     },
     children: [
       {
@@ -125,7 +126,7 @@ export const constantRoutes = [{
     redirect: '/backstage/account',
     meta: {
       title: '后台管理',
-      icon: 'user'
+      icon: 'set'
     },
     children: [
       {

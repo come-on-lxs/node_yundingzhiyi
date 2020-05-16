@@ -6,8 +6,8 @@
       :model="loginForm"
       :rules="loginRules"
       class="login-form"
-      auto-complete="on"
       label-position="left"
+      autocomplete="off"
     >
       <div class="title-container">
         <h3 class="title">后台管理系统</h3>
@@ -18,6 +18,11 @@
           <svg-icon icon-class="user" />
         </span>
         <el-input
+          v-model="loginForm.username"
+          placeholder="账户名"
+          autocomplete="off"
+        />
+        <!-- <el-input
           id="account"
           ref="username"
           v-model="loginForm.username"
@@ -25,8 +30,8 @@
           name="username"
           type="text"
           tabindex="1"
-          auto-complete="on"
-        />
+          autocomplete="off"
+        /> -->
       </el-form-item>
 
       <el-form-item prop="password">
@@ -42,7 +47,6 @@
           placeholder="密码"
           name="password"
           tabindex="2"
-          auto-complete="on"
           @keyup.enter.native="handleLogin"
         />
         <span class="show-pwd" @click="showPwd">
@@ -165,11 +169,11 @@ export default {
 }
 
 /* 修复input 在谷歌下会自动填充 -webit-autofull 属性背景 */
-#login-page {
-  .el-form-item__content {
-    background: #283443;
-  }
-}
+// #login-page {
+//   .el-form-item__content {
+//     background: #283443;
+//   }
+// }
 
 
 /* 修复input 背景不协调 和光标变色 */
